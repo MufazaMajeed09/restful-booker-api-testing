@@ -54,3 +54,33 @@ def test_new_booking():
 
     assert saved_data_dict["booking"]["bookingdates"]["checkin"] == "2026-12-08"
     assert saved_data_dict["booking"]["bookingdates"]["checkout"] == "2026-12-12"
+  
+
+def test_created_booking_can_be_retrieved():
+    booking_dict = {
+    "firstname":"abc",
+     "lastname":"xyz",
+     "totalprice":1000,
+      "depositpaid":True, 
+      "bookingdates":{
+        "checkin":"2026-12-08", 
+        "checkout":"2026-12-12"
+      } 
+    }   
+    headers = {"Accept": "application/json"}
+    resp = requests.post(BASE_URL, json=booking_dict, headers=headers)
+    assert resp.status_code==200
+    resp_data= resp.json()
+    booking_id = resp_data["bookingid"]
+    
+
+    resp = requests.get(f"{BASE_URL}/{booking_id}", headers=headers)
+    assert resp.status_code==200
+    resp_dict = resp.json()
+
+    assert resp_dict["firstname"] == booking_dict["firstname"]
+    assert resp_dict["lastname"] == booking_dict["lastname"]
+    assert resp_dict["totalprice"] == booking_dict["totalprice"]
+    assert resp_dict["depositpaid"] == booking_dict["depositpaid"]
+    assert resp_dict["bookingdates"]["checkin"] == booking_dict["bookingdates"]["checkin"]
+    assert resp_dict["bookingdates"]["checkout"] == booking_dict["bookingdates"]["checkout"]
