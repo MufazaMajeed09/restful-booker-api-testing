@@ -1,5 +1,6 @@
 import requests
 import json
+import pytest
 BASE_URL = "https://restful-booker.herokuapp.com/booking"
 
 def test_get_all_bookings_returns_200():
@@ -146,6 +147,35 @@ def test_delete_booking_with_token(auth_token,created_booking):
 
 
 
+def test_auth_with_wrong_password():
+    credentials_dict = {
+        "username": "admin",
+        "password": "wrong"
+    }
+
+    headers = {"Accept": "application/json"}
+    resp = requests.post("https://restful-booker.herokuapp.com/auth", json=credentials_dict, headers=headers)
+    assert resp.status_code == 200
+    resp = (resp.json())
+    assert "token" not in resp
+    assert resp["reason"] == "Bad credentials"
+
+def test_delete_booking_without_token(created_booking):
+    booking_id = created_booking
+    headers = {
+        "Accept": "application/json",
+    }
+    resp = requests.delete(f"{BASE_URL}/{booking_id}", headers=headers)
+    assert resp.status_code == 403
+
+    resp = requests.get(f"{BASE_URL}/{booking_id}", headers=headers)
+    assert resp.status_code == 200
+
+@pytest.mark.parametrize("booking_id", [999999999, 0, -1, "abc"])
+def test_get_booking_with_invalid_id(booking_id):
+    headers = {"Accept": "application/json"}
+    resp = requests.get(f"{BASE_URL}/{booking_id}", headers=headers)
+    assert resp.status_code == 404
 
 
 
